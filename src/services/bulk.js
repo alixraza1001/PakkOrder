@@ -1,0 +1,15 @@
+'use strict';
+
+const xlsx = require('xlsx');
+const { randomUUID } = require('crypto');
+const _uploads = new Map();
+setInterval(() => { const cutoff=Date.now()-30*60*1000; for(const [id,e] of _uploads) if(e.timestamp<cutoff) _uploads.delete(id); },10*60*1000).unref();
+const KEYWORDS={phone:['phone','mobile','contact','cell','tel','whatsapp','ph','mob','phonenumber','mobileno','contactno','phno','موبائل','نمبر'],name:['name','customer','buyer','client','recipient','fullname','customername','buyername','نام'],city:['city','town','area','district','شہر','tehsil'],address:['address','addr','street','delivery','پتہ','addressline','deliveryaddress','fulladdress'],amount:['amount','total','price','cost','payment','rs','rupee','value','cod','رقم','totalamount','orderamount','codamount'],order_id:['orderid','orderref','orderno','ref','reference','invoice','bill','tracking','ordernumber','serialno'],order_details:['items','product','products','detail','description','desc','goods','آرڈر','productname','orderdetails','itemdescription']};
+const PK_PHONE_RE=/^(\+?92|0)?3\d{9}$/;
+function _normalizeHeader(h){return String(h).toLowerCase().replace(/[\s_\-().#]/g,'');}
+function parseFile(buffer){const workbook=xlsx.read(buffer,{type:'buffer',raw:true,cellDates:true});const sheet=workbook.Sheets[workbook.SheetNames[0]];const rawRows=xlsx.utils.sheet_to_json(sheet,{defval:'',raw:true});const rows=rawRows.map(row=>{const out={};for(const[k,v]of Object.entries(row))out[k]=typeof v==='number'?String(Math.round(v)):String(v??'');return out;});return{columns:rows.length?Object.keys(rows[0]):[],rows};}
+function detectColumnMapping(columns,rows){const samples={};for(const col of columns)samples[col]=rows.slice(0,20).map(r=>String(r[col]||'')).filter(Boolean);const detected={},confidence={},locked=new Set();for(const field of ['phone','name','order_id','order_details','amount','city','address']){let best=null,bestScore=0;for(const col of columns){if(locked.has(col))continue;const norm=_normalizeHeader(col);let score=0;for(const kw of KEYWORDS[field]){if(norm===kw){score+=10;break;}if(norm.includes(kw)||kw.includes(norm)){score+=4;break;}}if(field==='phone'&&samples[col].length){const hits=samples[col].filter(v=>PK_PHONE_RE.test(v.replace(/[\s\-()+]/g,''))).length;score+=(hits/samples[col].length)*8;}if(field==='amount'&&samples[col].length){const hits=samples[col].filter(v=>!isNaN(parseFloat(v.replace(/[,\sRs.]/gi,'')))).length;score+=(hits/samples[col].length)*3;}if(score>bestScore){bestScore=score;best=col;}}if(best&&bestScore>0){detected[field]=best;confidence[field]=Math.min(bestScore/10,1);if(bestScore>=4)locked.add(best);}}return{detected,confidence};}
+function storeUpload(clientId,columns,rows){const id=randomUUID();_uploads.set(id,{clientId,columns,rows,timestamp:Date.now()});return id;}
+function getUpload(id){return _uploads.get(id)||null;}
+function deleteUpload(id){_uploads.delete(id);}
+module.exports={parseFile,detectColumnMapping,storeUpload,getUpload,deleteUpload};

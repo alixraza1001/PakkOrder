@@ -1,0 +1,11 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Archived/public portfolio snapshot: deny direct client access by default.
+    // Define least-privilege rules for your own Firebase project before deploying.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

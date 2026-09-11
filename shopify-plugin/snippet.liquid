@@ -1,0 +1,31 @@
+{% comment %} PakkOrder archived Shopify storefront integration example {% endcomment %}
+<script>
+(function() {
+  var LICENSE_KEY = '{{ license_key }}';
+  var API_URL = '{{ api_url }}';
+  if (!LICENSE_KEY || !API_URL) return;
+
+  if (window.Shopify && window.Shopify.checkout) {
+    var checkout = window.Shopify.checkout;
+    var method = (checkout.payment_method_title || '').toLowerCase();
+    var isCOD = method.indexOf('cash') !== -1 || method.indexOf('cod') !== -1 || checkout.financial_status === 'pending';
+    if (!isCOD) return;
+
+    var phone = (checkout.shipping_address && checkout.shipping_address.phone) ||
+                (checkout.billing_address && checkout.billing_address.phone) || '';
+    if (!phone) return;
+
+    var items = checkout.line_items || [];
+    fetch(API_URL.replace(/\/$/, '') + '/new-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-License-Key': LICENSE_KEY },
+      body: JSON.stringify({
+        buyer_phone: phone,
+        buyer_email: checkout.email || '',
+        order_id: String(checkout.order_id || checkout.token || ''),
+        order_details: items.map(function(item) { return item.title + ' x' + item.quantity; }).join(', ')
+      })
+    }).catch(function() {});
+  }
+})();
+</script>

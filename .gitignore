@@ -1,0 +1,30 @@
+# Environment / credentials
+.env
+.env.*
+!.env.example
+serviceAccount.json
+serviceAccount*.json
+*.pem
+*.key
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local API / test fixtures that may contain tokens or PII
+test.http
+*.http
+
+# Generated distributables
+public/*.zip
+
+# Claude Code / local agent state
+.claude/
+skills-lock.json
