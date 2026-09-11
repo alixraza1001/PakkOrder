@@ -32,7 +32,7 @@ WhatsApp / email confirmation is sent
           ↓
 Customer confirms or cancels
           ↓
-Seller dashboard reflects the decision
+Seller workflow reflects the decision
           ↓
 Stale orders can be handled automatically
 ```
@@ -43,13 +43,13 @@ Stale orders can be handled automatically
 - **Email confirmation** and notification flows through Resend
 - **Confirm / cancel actions** tied back to the originating order
 - **Multi-merchant backend foundations** with client accounts, plans, limits, and protected routes
-- **Seller dashboard** for order activity and merchant-facing operations
-- **Shopify integration** through webhook and OAuth/app routes
-- **Embeddable storefront snippet** for non-Shopify integrations
+- **Merchant API/dashboard backend** for order activity and seller operations
+- **Shopify integration** through OAuth and `orders/create` webhooks
+- **Embeddable storefront integration** for non-Shopify checkout forms
 - **Bulk order tooling** for spreadsheet/manual seller workflows
 - **Scheduled operations** for reminders, stale orders, reporting, and usage resets
 - **Firebase / Firestore persistence** with server-side Firebase Admin access
-- **Security middleware** including Helmet, CORS, JWT authentication, validation, and rate limiting
+- **Security middleware** including Helmet, CORS, JWT authentication, validation, rate limiting, and Shopify webhook HMAC verification
 
 ## Architecture
 
@@ -73,7 +73,7 @@ Storefront / Shopify / Bulk Upload
        Firestore + queues
 ```
 
-The codebase separates route handling from shared services and middleware so order ingestion, messaging, seller APIs, webhooks, and platform integrations can evolve independently.
+The source snapshot keeps route handling, middleware and service logic separated so order ingestion, messaging, merchant APIs, webhooks and integrations can evolve independently.
 
 ## Tech stack
 
@@ -85,9 +85,9 @@ The codebase separates route handling from shared services and middleware so ord
 | Authentication | Firebase Auth + JWT |
 | Messaging | Meta WhatsApp Business Cloud API |
 | Email | Resend |
-| Ecommerce | Shopify webhooks / OAuth routes |
+| Ecommerce | Shopify OAuth + webhooks |
 | Scheduling | node-cron |
-| Security | Helmet, CORS, express-rate-limit |
+| Security | Helmet, CORS, express-rate-limit, webhook HMAC verification |
 | File/data handling | XLSX, Multer, Axios |
 | Original deployment target | Railway / Node-compatible hosting |
 
@@ -102,16 +102,15 @@ PakkOrder/
 │   └── utils/          # Logging, phone and license helpers
 ├── lib/                # Shared helpers
 ├── public/
-│   ├── dashboard/      # Lightweight merchant dashboard
-│   ├── snippet.js      # Embeddable storefront integration
-│   └── *.html          # Product / integration pages from the original build
-├── shopify-plugin/     # Shopify integration snippet/docs
-├── wordpress-plugin/   # WooCommerce/WordPress integration prototype
+│   └── snippet.js      # Archived storefront integration example
+├── shopify-plugin/     # Archived Shopify integration notes/snippet
 ├── firestore.rules
 ├── firestore.indexes.json
 ├── server.js
 └── package.json
 ```
+
+The original commercial build also included marketing pages and a browser dashboard. Those deployment-facing assets were deliberately left out of this public snapshot so the repository stays focused on the engineering work and avoids carrying old operational material forward.
 
 ## Local setup
 
@@ -134,7 +133,7 @@ Populate `.env` only with your own development credentials. The included `.env.e
 
 ## Configuration
 
-The application reads configuration from environment variables, including:
+The application reads configuration from environment variables such as:
 
 ```text
 APP_URL
@@ -171,6 +170,7 @@ This is an **archived product snapshot, not a production-ready starter template*
 
 - Firestore rules in this public snapshot default to **deny all**.
 - Deployment credentials are intentionally excluded.
+- Shopify webhook processing in this snapshot verifies the request HMAC before accepting an order event.
 - The original product supported merchant-specific third-party credentials; a new production implementation should store such credentials in a managed secrets/KMS solution instead of normal application documents.
 - Generate new secrets for any deployment rather than reusing historical PakkOrder credentials.
 - This public repository was created from a sanitized snapshot with fresh Git history, so historical private-repository credentials are not carried into this repository.
@@ -185,7 +185,7 @@ GET /health
 
 ## Background
 
-PakkOrder began as one of my early attempts to turn a real ecommerce workflow into a complete software product rather than a classroom demo. It grew from simple COD verification into messaging automation, merchant accounts, dashboards, Shopify integration, bulk workflows, reporting, and operational tooling.
+PakkOrder began as one of my early attempts to turn a real ecommerce workflow into a complete software product rather than a classroom demo. It grew from simple COD verification into messaging automation, merchant accounts, Shopify integration, bulk workflows, reporting, and operational tooling.
 
 The initial version was built with **Claude as an AI-assisted development partner**. Claude helped with implementation reasoning and iteration during development; it was not a runtime dependency of the product.
 
