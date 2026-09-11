@@ -1,0 +1,35 @@
+{
+  "name": "pakkorder-backend",
+  "version": "1.0.0",
+  "description": "Archived COD order-verification and ecommerce automation backend for Pakistani online sellers.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  },
+  "keywords": [
+    "ecommerce",
+    "cod",
+    "whatsapp",
+    "shopify",
+    "firebase",
+    "automation"
+  ],
+  "author": "Ali Raza Memon",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.14.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
+    "firebase-admin": "^13.7.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
+    "node-cron": "^4.2.1",
+    "resend": "^6.10.0",
+    "xlsx": "^0.18.5"
+  }
+}
